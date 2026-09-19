@@ -26,6 +26,7 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
+                bat 'cd terraform && terraform init'
                 bat 'cd terraform && terraform plan'
             }
         }
