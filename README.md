@@ -1,25 +1,25 @@
 High-Availability Blue-Green Microservices Deployment Platform
 
-A DevOps-based microservices deployment platform implementing Blue-Green Deployment with automated CI/CD, containerization, Kubernetes orchestration, Infrastructure as Code, and NGINX-based traffic routing.
+A DevOps-based microservices deployment platform implementing Blue-Green Deployment, CI/CD automation, Docker containerization, Kubernetes orchestration, Terraform Infrastructure as Code, and NGINX traffic routing.
 
 ---
 
-Overview
+📌 Overview
 
-This project demonstrates a production-inspired deployment strategy for releasing new application versions with minimal service interruption.
+This project demonstrates a production-inspired approach for deploying new application versions with minimal service interruption.
 
-Two isolated application environments are maintained:
+Two independent environments are maintained:
 
-- Blue — Current stable version
-- Green — New version under validation
+- 🔵 Blue — Current stable version
+- 🟢 Green — New version under validation
 
-The new release is deployed to the Green environment while Blue continues serving traffic. After successful validation, traffic is switched to Green. If an issue occurs, traffic can be redirected back to Blue.
+The new version is deployed to Green while Blue continues serving traffic. After successful validation, traffic can be switched to Green. If an issue occurs, traffic can be rolled back to Blue.
 
-The complete workflow is automated through Jenkins, while Kubernetes infrastructure is defined using Terraform.
+The deployment workflow is automated using Jenkins, while Kubernetes infrastructure is managed using Terraform.
 
 ---
 
-Architecture
+🏗️ Architecture
 
                          Developer
                              │
@@ -37,16 +37,15 @@ Architecture
               └──────────────┼──────────────┘
                              │
                              ▼
-                     Kubernetes Cluster
-                        (Minikube)
+                    Kubernetes / Minikube
                              │
-                ┌────────────┴────────────┐
-                │                         │
-                ▼                         ▼
-          BLUE Environment         GREEN Environment
-             v1                        v2
-                │                         │
-                └────────────┬────────────┘
+              ┌──────────────┴──────────────┐
+              │                             │
+              ▼                             ▼
+       🔵 BLUE ENVIRONMENT           🟢 GREEN ENVIRONMENT
+             v1                             v2
+              │                             │
+              └──────────────┬──────────────┘
                              │
                              ▼
                       Traffic Router
@@ -57,206 +56,83 @@ Architecture
                              ▼
                            Users
 
+Architecture Screenshot
+
+![alt text](screenshots/architecture.png)
+
 ---
 
-Technology Stack
+🛠️ Technology Stack
 
-Technology| Role
+Technology| Purpose
 Python / Flask| Microservices
 Docker| Containerization
 Docker Compose| Local development
 Kubernetes| Container orchestration
 Minikube| Local Kubernetes cluster
-NGINX Ingress| Application routing
+NGINX Ingress| Traffic routing
 Terraform| Infrastructure as Code
 Jenkins| CI/CD automation
-Git| Version control
-GitHub| Source code management
-PowerShell| Windows automation
+Git / GitHub| Version control
+PowerShell| Command-line operations
 
 ---
 
-Application Architecture
-
-The application consists of two microservices.
+🔹 Microservices
 
 Frontend Service
 
-- Flask-based application
+- Built using Flask
 - Runs on port "5000"
-- Provides application and product endpoints
+- Provides application information
 - Communicates with the Product Service
-
-Product Service
-
-- Flask-based backend microservice
-- Runs on port "5001"
-- Provides product data
 - Includes a health endpoint
 
-Service communication:
+Product Service
+
+- Built using Flask
+- Runs on port "5001"
+- Provides product information
+- Includes a health endpoint
 
 Frontend
-   │
-   │ HTTP
-   ▼
+    │
+    │ HTTP
+    ▼
 Product Service
 
 ---
 
-Blue-Green Deployment Strategy
+🐳 Docker
 
-Blue Environment
+Each microservice is packaged as an independent Docker image.
 
-The Blue environment contains the currently stable application version.
+Build Frontend
 
-Frontend       → v1
-Product Service → v1
+docker build -t blue-green-frontend:v2 ./frontend
 
-Blue continues serving traffic while the next release is prepared.
+Build Product Service
 
-Green Environment
+docker build -t blue-green-product-service:v2 ./product-service
 
-The Green environment contains the new application version.
+Run Locally
 
-Frontend       → v2
-Product Service → v2
-
-Green can be deployed and validated independently without immediately affecting the live environment.
-
-Traffic Switch
-
-After validation:
-
-Before:
-
-Users
-  │
-  ▼
-NGINX
-  │
-  ▼
-BLUE v1
-
-
-After:
-
-Users
-  │
-  ▼
-NGINX
-  │
-  ▼
-GREEN v2
-
-Rollback
-
-If the new version has an issue:
-
-GREEN v2
-   │
-   │ Rollback
-   ▼
-BLUE v1
-
-This allows the previous stable version to receive traffic again without rebuilding the application.
+docker compose up --build
 
 ---
 
-CI/CD Pipeline
+☸️ Kubernetes
 
-Jenkins automates the deployment workflow.
-
-GitHub
-   │
-   ▼
-Checkout
-   │
-   ▼
-Validate Tools
-   │
-   ▼
-Build Docker Images
-   │
-   ▼
-Terraform Init
-   │
-   ▼
-Terraform Plan
-   │
-   ▼
-Deploy Kubernetes Resources
-
-Jenkins Pipeline Stages
-
-1. Checkout
-
-Retrieves the source code from the GitHub repository.
-
-2. Validate Project
-
-Validates the availability of:
-
-- Docker
-- kubectl
-- Terraform
-
-3. Build Docker Images
-
-Builds the frontend and product-service container images.
-
-4. Terraform Plan
-
-Initializes Terraform and generates an infrastructure plan.
-
-5. Deploy to Kubernetes
-
-Deploys Kubernetes resources recursively:
-
-kubectl apply -R -f kubernetes
-
----
-
-Infrastructure as Code
-
-Terraform is used to define Kubernetes infrastructure as code.
-
-Current Terraform configuration manages core resources including:
-
-- Blue namespace
-- Green namespace
-- Routing namespace
-- Blue frontend deployment
-- Green frontend deployment
-- Blue product-service deployment
-- Green product-service deployment
-- Blue frontend service
-
-Terraform workflow:
-
-cd terraform
-terraform init
-terraform validate
-terraform plan
-
-This allows infrastructure configuration to be version-controlled and reproduced consistently.
-
----
-
-Kubernetes Architecture
-
-The cluster contains separate namespaces for the deployment environments and traffic routing.
+The application is deployed on a Kubernetes cluster using Minikube.
 
 Kubernetes Cluster
 │
 ├── blue
-│   ├── Frontend Deployment
-│   ├── Frontend Service
+│   ├── Frontend
 │   └── Product Service
 │
 ├── green
-│   ├── Frontend Deployment
-│   ├── Frontend Service
+│   ├── Frontend
 │   └── Product Service
 │
 └── routing
@@ -264,15 +140,60 @@ Kubernetes Cluster
     ├── NGINX Configuration
     └── Ingress
 
-Each application deployment uses multiple replicas to improve availability.
+Multiple replicas are used for the application deployments.
 
 ---
 
-NGINX Traffic Routing
+🔄 Blue-Green Deployment
 
-NGINX is used as the traffic-routing layer between the external Ingress and the Blue/Green environments.
+Blue Environment
 
-Client
+Blue represents the stable application version.
+
+Frontend        → v1
+Product Service → v1
+
+Green Environment
+
+Green represents the new application version.
+
+Frontend        → v2
+Product Service → v2
+
+Deployment Flow
+
+Blue v1
+   │
+   │ New version deployed
+   ▼
+Green v2
+   │
+   │ Validation
+   ▼
+Traffic Switch
+   │
+   ▼
+Green v2 → Live
+
+Rollback
+
+If the new version has an issue:
+
+Green v2
+   │
+   │ Rollback
+   ▼
+Blue v1 → Live
+
+This allows the previous stable version to remain available for quick recovery.
+
+---
+
+🌐 NGINX Traffic Routing
+
+NGINX is used as the traffic-routing layer.
+
+Users
   │
   ▼
 NGINX Ingress
@@ -280,33 +201,85 @@ NGINX Ingress
   ▼
 Traffic Router
   │
-  ├──────────────► Blue
+  ├──────────► Blue
   │
-  └──────────────► Green
+  └──────────► Green
 
-The router can be configured to direct application traffic to either environment.
-
----
-
-Docker
-
-Each microservice has its own Docker image.
-
-Build the frontend:
-
-docker build -t blue-green-frontend:v2 ./frontend
-
-Build the Product Service:
-
-docker build -t blue-green-product-service:v2 ./product-service
-
-For local development:
-
-docker compose up --build
+Traffic can be switched between the Blue and Green environments.
 
 ---
 
-Project Structure
+🏗️ Terraform
+
+Terraform is used to define Kubernetes infrastructure as code.
+
+The Terraform configuration manages core resources including:
+
+- Kubernetes namespaces
+- Blue frontend deployment
+- Green frontend deployment
+- Blue product-service deployment
+- Green product-service deployment
+- Kubernetes services
+
+Terraform Commands
+
+cd terraform
+terraform init
+terraform validate
+terraform plan
+
+Infrastructure configuration can therefore be maintained through version control.
+
+---
+
+🔄 Jenkins CI/CD
+
+Jenkins automates the deployment workflow.
+
+Pipeline
+
+GitHub
+   ↓
+Checkout
+   ↓
+Validate Project
+   ↓
+Build Docker Images
+   ↓
+Terraform Init
+   ↓
+Terraform Plan
+   ↓
+Deploy to Kubernetes
+
+The Kubernetes configuration is deployed recursively using:
+
+kubectl apply -R -f kubernetes
+
+---
+
+✅ Jenkins Pipeline Success
+
+The final Jenkins pipeline successfully executes the project workflow and deploys the Kubernetes resources.
+
+Jenkins Success Screenshot
+![alt text](screenshots/jenkinsfile.png)
+
+The pipeline includes:
+
+- GitHub checkout
+- Docker validation
+- Kubernetes client validation
+- Terraform validation
+- Docker image builds
+- Terraform initialization
+- Terraform plan
+- Kubernetes deployment
+
+---
+
+📂 Project Structure
 
 blue-green-microservices/
 │
@@ -322,16 +295,8 @@ blue-green-microservices/
 │
 ├── kubernetes/
 │   ├── blue/
-│   │   ├── frontend-deployment.yaml
-│   │   └── product-service-deployment.yaml
-│   │
 │   ├── green/
-│   │   ├── frontend-deployment.yaml
-│   │   └── product-service-deployment.yaml
-│   │
 │   └── traffic-router/
-│       ├── router.yaml
-│       └── nginx.conf
 │
 ├── terraform/
 │   └── main.tf
@@ -342,143 +307,94 @@ blue-green-microservices/
 
 ---
 
-Deployment Workflow
+🔍 Verification Commands
 
-The complete release process is:
-
-1. Developer updates application
-              │
-              ▼
-2. Code pushed to GitHub
-              │
-              ▼
-3. Jenkins pipeline starts
-              │
-              ▼
-4. Docker images are built
-              │
-              ▼
-5. Terraform infrastructure is validated/planned
-              │
-              ▼
-6. Kubernetes resources are deployed
-              │
-              ▼
-7. Green environment runs new version
-              │
-              ▼
-8. Application is validated
-              │
-              ▼
-9. Traffic can be switched to Green
-              │
-              ▼
-10. Blue remains available for rollback
-
----
-
-Verification Commands
-
-Check Kubernetes pods:
+Check Pods
 
 kubectl get pods -A
 
-Check deployments:
+Check Deployments
 
 kubectl get deployments -A
 
-Check services:
+Check Services
 
 kubectl get services -A
 
-Check Ingress:
+Check Ingress
 
 kubectl get ingress -A
 
-Check namespaces:
-
-kubectl get namespaces
-
 ---
 
-Key Features
+🚀 Key Features
 
 - Blue-Green deployment architecture
-- Zero/minimal-interruption release strategy
-- Microservices-based application
+- Microservices architecture
 - Docker containerization
+- Docker Compose
 - Kubernetes orchestration
-- Multiple application replicas
-- NGINX traffic routing
-- Automated Jenkins CI/CD pipeline
+- Minikube deployment
+- NGINX Ingress
+- Traffic routing
+- Application rollback
+- Multiple replicas
 - Terraform Infrastructure as Code
-- GitHub-based version control
-- Application rollback capability
-- Separate Blue and Green environments
-- Automated recursive Kubernetes deployment
+- Jenkins CI/CD automation
+- GitHub version control
+- Automated Kubernetes deployment
 
 ---
 
-Project Outcome
+📈 Project Outcome
 
-The project demonstrates an end-to-end DevOps workflow for deploying containerized microservices using Kubernetes.
-
-The implementation successfully demonstrates:
+This project demonstrates an end-to-end DevOps workflow:
 
 Source Control
       ↓
 CI/CD Automation
       ↓
-Container Build
+Docker
       ↓
-Infrastructure as Code
+Terraform
       ↓
-Kubernetes Deployment
+Kubernetes
       ↓
-Blue-Green Release
+Blue-Green Deployment
       ↓
-Traffic Switching
+Traffic Routing
       ↓
 Rollback
 
-This architecture provides a practical foundation for understanding how modern DevOps teams can manage application releases while maintaining an available stable version during deployment.
+It provides practical experience with modern DevOps tools and demonstrates how containerized microservices can be deployed, managed, released, and rolled back using an automated deployment workflow.
 
 ---
 
-Skills Demonstrated
+💼 Skills Demonstrated
 
-DevOps:
-CI/CD, deployment automation, release management
+DevOps: CI/CD, deployment automation, release management
 
-Containerization:
-Docker, Docker Compose
+Containers: Docker, Docker Compose
 
-Orchestration:
-Kubernetes, Minikube
+Orchestration: Kubernetes, Minikube
 
-Infrastructure as Code:
-Terraform
+Infrastructure as Code: Terraform
 
-CI/CD:
-Jenkins
+CI/CD: Jenkins
 
-Networking:
-NGINX Ingress, Kubernetes Services
+Networking: NGINX Ingress, Kubernetes Services
 
-Version Control:
-Git, GitHub
+Version Control: Git, GitHub
 
-Programming:
-Python, Flask
+Programming: Python, Flask
 
 ---
 
-Author
+👨‍💻 Author
 
- vishan Sree A
+  Vishan Sree A
 
 B.E. Computer Science and Engineering — 2026
 
-Project Focus
-
-DevOps | Kubernetes | Docker | Jenkins | Terraform | CI/CD | Microservices | Blue-Green Deployment
+Project Focus:
+"DevOps" · "Docker" · "Kubernetes" · "Jenkins" · "Terraform" · "CI/CD" · "Microservices" · "Blue-Green Deployment"
