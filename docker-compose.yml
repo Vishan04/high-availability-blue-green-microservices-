@@ -1,0 +1,15 @@
+services:
+
+  product-service:
+    build: ./product-service
+    container_name: product-service
+    ports:
+      - "5001:5001"
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - product-service

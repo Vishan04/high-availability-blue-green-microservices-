@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: routing
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: routing
+data:
+  nginx.conf: |
+    events {}
+    http {
+      server {
+        listen 5000;
+
+        location / {
+          proxy_pass http://frontend.blue.svc.cluster.local:5000;
+        }
+      }
+    }
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traffic-router
+  namespace: routing
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traffic-router
+  template:
+    metadata:
+      labels:
+        app: traffic-router
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 5000
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traffic-router
+  namespace: routing
+spec:
+  selector:
+    app: traffic-router
+  ports:
+    - port: 5000
+      targetPort: 5000
