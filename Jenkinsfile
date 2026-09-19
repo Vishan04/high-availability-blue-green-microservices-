@@ -28,6 +28,11 @@ pipeline {
             steps {
                 bat 'cd terraform && terraform init'
                 bat 'cd terraform && terraform plan'
+                stage('Deploy to Kubernetes') {
+    steps {
+        bat 'kubectl apply -f kubernetes'
+    }
+}
             }
         }
     }
