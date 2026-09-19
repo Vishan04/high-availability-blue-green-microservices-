@@ -33,7 +33,7 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                bat 'kubectl apply -f kubernetes'
+                bat 'kubectl apply -R -f kubernetes'
             }
         }
     }
